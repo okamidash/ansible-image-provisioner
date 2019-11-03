@@ -7,13 +7,14 @@
     memory: '{{ memory }}'
     vpcus: '{{ vcpus }}'
     disk_size: '{{ disk_size }}'
-    cloud_init_path: '/srv/hyper/vol0/virt/cloudinit'
-    cloud_init_isos: '/srv/hyper/vol0/virt/cloudinit/isos'
-    base_disk: '/srv/hyper/vol0/virt/base/Fedora-Cloud-Base-30-1.2.x86_64.qcow2'
-    disk_path: '/srv/hyper/vol0/virt/images'
+    cloud_init_path: '/srv/nfs/hydrogen/helium/cloudinit'
+    cloud_init_isos: '/srv/nfs/hydrogen/helium/cloudinit/isos'
+    base_disk: 'fedora-cloud-base.qcow2'
+    disk_path: '/srv/zfs/ember/virt/images/'
+    ansible_hosts: '/home/okami/code/ansible/image-provisioner/hosts'
   tasks:
     - name: Instantiate image
-      command: rsync -a {{ base_disk }} {{ disk_path }}/{{ host_name }}.qcow2
+      command: rsync -a rsync://hydrogen.srv.oxide.one:/base/{{ base_disk }} {{ disk_path }}/{{ host_name }}.qcow2
       become: yes
 
     - name: Generate new meta-data instance-id
@@ -38,9 +39,9 @@
                --vcpus {{ vcpus }} \
                --memory {{ memory }} \
                --import \
+               --network=network:default \
                --disk '{{ disk_path }}/{{ host_name }}'.qcow2,format=qcow2,bus=virtio \
                --disk {{ cloud_init_isos }}/{{ host_name }}.iso,device=cdrom \
-               --network default \
                --os-type=linux \
                --os-variant=archlinux \
                --graphics none \
